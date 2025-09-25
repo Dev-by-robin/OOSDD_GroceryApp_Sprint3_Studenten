@@ -12,6 +12,8 @@ namespace Grocery.Core.Services
 {
     public class FileSaverService : IFileSaverService
     {
+        public string FilePath { get; private set; } = string.Empty;
+
         public async Task SaveFileAsync(string fileName, string content, CancellationToken cancellationToken)
         {
 #if MACCATALYST
@@ -34,6 +36,8 @@ namespace Grocery.Core.Services
 #else
             var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
             var result = await FileSaver.Default.SaveAsync(fileName, stream, cancellationToken);
+
+            FilePath = result?.FilePath;
 
             if (!result.IsSuccessful)
                 throw result.Exception ?? new IOException("Unknown error saving file.");

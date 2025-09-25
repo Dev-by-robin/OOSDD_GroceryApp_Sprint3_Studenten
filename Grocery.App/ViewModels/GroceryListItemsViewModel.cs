@@ -79,7 +79,8 @@ namespace Grocery.App.ViewModels
             {
                 await _fileSaverService.SaveFileAsync("Boodschappen.json", jsonString, cancellationToken);
                 //await Toast.Make("Boodschappenlijst is opgeslagen.").Show(cancellationToken);
-                await Shell.Current.DisplayAlert("Succes", "Boodschappenlijst is opgeslagen.", "OK");
+                
+                await Shell.Current.DisplayAlert("Succes", $"Boodschappenlijst is opgeslagen:\n{_fileSaverService.FilePath}", "OK");
             }
             catch (Exception ex)
             {
