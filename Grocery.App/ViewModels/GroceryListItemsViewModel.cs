@@ -78,11 +78,14 @@ namespace Grocery.App.ViewModels
             try
             {
                 await _fileSaverService.SaveFileAsync("Boodschappen.json", jsonString, cancellationToken);
-                await Toast.Make("Boodschappenlijst is opgeslagen.").Show(cancellationToken);
+                //await Toast.Make("Boodschappenlijst is opgeslagen.").Show(cancellationToken);
+                
+                await Shell.Current.DisplayAlert("Succes", $"Boodschappenlijst is opgeslagen:\n{_fileSaverService.FilePath}", "OK");
             }
             catch (Exception ex)
             {
-                await Toast.Make($"Opslaan mislukt: {ex.Message}").Show(cancellationToken);
+                //await Toast.Make($"Opslaan mislukt: {ex.Message}").Show(cancellationToken);
+                await Shell.Current.DisplayAlert("Fout", $"Opslaan mislukt: {ex.Message}", "OK");
             }
         }
 
