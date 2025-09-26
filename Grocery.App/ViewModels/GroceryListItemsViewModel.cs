@@ -15,7 +15,8 @@ namespace Grocery.App.ViewModels
         private readonly IGroceryListItemsService _groceryListItemsService;
         private readonly IProductService _productService;
         private readonly IFileSaverService _fileSaverService;
-        
+        private readonly IGroceryListService _groceryListService;
+
         public ObservableCollection<GroceryListItem> MyGroceryListItems { get; set; } = [];
         public ObservableCollection<Product> AvailableProducts { get; set; } = [];
 
@@ -27,11 +28,12 @@ namespace Grocery.App.ViewModels
         // alle beschikbare producten
         private IEnumerable<Product> _allAvailableProducts = [];
 
-        public GroceryListItemsViewModel(IGroceryListItemsService groceryListItemsService, IProductService productService, IFileSaverService fileSaverService)
+        public GroceryListItemsViewModel(IGroceryListItemsService groceryListItemsService, IProductService productService, IFileSaverService fileSaverService, IGroceryListService groceryListService)
         {
             _groceryListItemsService = groceryListItemsService;
             _productService = productService;
             _fileSaverService = fileSaverService;
+            _groceryListService = groceryListService;
             Load(groceryList.Id);
         }
 
@@ -122,6 +124,31 @@ namespace Grocery.App.ViewModels
             if (AvailableProducts.Count == 0)
             {
                 Shell.Current.DisplayAlert("Geen producten gevonden", "Probeer een andere zoekterm", "OK");
+            }
+        }
+
+        [RelayCommand]
+        private async Task RenameList()
+        {
+            // popup met invoerveld tonen
+            string result = await Shell.Current.DisplayPromptAsync(
+                "Lijst hernoemen",
+                "Nieuwe naam voor de boodschappenlijst:",
+                initialValue: GroceryList.Name,
+                maxLength: 50,
+                keyboard: Keyboard.Text);
+
+            // naam wijzigen indien geldig
+            if (!string.IsNullOrWhiteSpace(result) && result != GroceryList.Name)
+            {
+                GroceryList.Name = result;
+                OnPropertyChanged(nameof(GroceryList));
+                _groceryListService.Update(GroceryList);
+                await Shell.Current.DisplayAlert("Succes", "De lijst is hernoemd.", "OK");
+            }
+            else
+            {
+                await Shell.Current.DisplayAlert("Fout", "De naam is niet gewijzigd.", "OK");
             }
         }
     }
