@@ -24,6 +24,9 @@ namespace Grocery.App.ViewModels
         [ObservableProperty]
         string myMessage;
 
+        // alle beschikbare producten
+        private IEnumerable<Product> _allAvailableProducts = [];
+
         public GroceryListItemsViewModel(IGroceryListItemsService groceryListItemsService, IProductService productService, IFileSaverService fileSaverService)
         {
             _groceryListItemsService = groceryListItemsService;
@@ -42,9 +45,12 @@ namespace Grocery.App.ViewModels
         private void GetAvailableProducts()
         {
             AvailableProducts.Clear();
-            foreach (Product p in _productService.GetAll())
-                if (MyGroceryListItems.FirstOrDefault(g => g.ProductId == p.Id) == null  && p.Stock > 0)
-                    AvailableProducts.Add(p);
+            _allAvailableProducts = _productService.GetAll()
+                .Where(p => MyGroceryListItems.FirstOrDefault(g => g.ProductId == p.Id) == null && p.Stock > 0);
+            foreach (var product in _allAvailableProducts)
+            {
+                AvailableProducts.Add(product);
+            }
         }
 
         partial void OnGroceryListChanged(GroceryList value)
@@ -89,5 +95,34 @@ namespace Grocery.App.ViewModels
             }
         }
 
+        [RelayCommand]
+        private void SearchProducts(string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                // reset producten
+                AvailableProducts.Clear();
+                foreach (Product product in _allAvailableProducts)
+                {
+                    AvailableProducts.Add(product);
+                }
+                return;
+            }
+
+            // producten filteren
+            var filteredProducts = _allAvailableProducts
+                .Where(p => p.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+
+            AvailableProducts.Clear();
+            foreach (Product product in filteredProducts)
+            {
+                AvailableProducts.Add(product);
+            }
+            // geen producten gevonden
+            if (AvailableProducts.Count == 0)
+            {
+                Shell.Current.DisplayAlert("Geen producten gevonden", "Probeer een andere zoekterm", "OK");
+            }
+        }
     }
 }
